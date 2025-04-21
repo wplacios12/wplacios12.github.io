@@ -1,0 +1,234 @@
+/* Reset general */
+* {
+    margin: 0;                             /* Elimina márgenes por defecto */
+    padding: 0;                            /* Elimina relleno por defecto */
+    box-sizing: border-box;               /* Hace que el padding no afecte el ancho total */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fuente legible y moderna */
+  }
+  
+  
+  /* Encabezado */
+  header {
+    width: 100%;                        /* Ancho completo */
+    position: relative; /* Necesario para poner una capa encima de la imagen */
+    background: url('./images/3726696.jpg') center/cover no-repeat; 
+    /* Imagen centrada, que cubre todo el fondo y no se repite */
+    color: white;        /* Texto blanco */
+    text-align: center;  /* Centra el texto horizontalmente */
+    padding: 5rem 2rem;  /* Espacio interno arriba/abajo (5rem), lados (2rem) */
+    overflow: hidden;    /* Oculta lo que se salga del área */
+    min-height: 25vh;
+
+  }
+  
+  header::before {                  /* Colocar una capa oscura encima de la imágen de fondo.*/
+    content: '';                   /* Obligatorio para que el ::before funcione.*/
+    position: absolute;           /* Se posiciona encima de la imagen */
+    top: 0; left: 0;              /* Empieza desde la esquina superior izquierda */
+    width: 100%; height: 100%;   /* Cubre todo el header */
+    background: linear-gradient(to bottom right, rgba(0,0,0,0.4), rgba(0,0,0,0.5)); 
+    /* Capa oscura semitransparente para que el texto se lea mejor */
+    z-index: 1;                   /* Asegura que esta capa este por detraz del texto. Pero por delante de laimágen de fondo.*/
+  }
+
+ 
+  header h1,
+  header p {
+    position: relative; /* Asegura que el texto esté encima de la capa oscura */
+    z-index: 2;         /* Prioridad más alta para que el texto se vea */
+    padding-top: 30px;
+  }
+  
+  header h1 {
+    font-size: 3rem;  /* Tamaño grande para destacar el título */
+    font-weight: bold; /* Texto grueso */
+    text-shadow: 0 0 10px white, 2px 2px 5px rgba(0,0,0,0.6); 
+    /* Efecto de brillo y sombra para que se vea bien sobre la imagen */
+    margin-bottom: 1rem; /* Espacio debajo del título */
+  }
+  
+  header p {
+    font-size: 1.4rem;  /* Tamaño medio para el subtítulo */
+    font-weight: 300;   /* Texto más delgado */
+    color: #fefefe;     /* Blanco casi puro */
+    text-shadow: 0 0 6px rgba(0,0,0,0.6); 
+    /* Sombra suave para facilitar la lectura */
+  }
+  
+    
+  /* Navegación */
+
+  
+nav {
+    background-color: #2a9fa0;            /* Azul medio */
+    padding: 0.1rem; 
+/* Espaciado interno */
+    height: flex; /* Permite que el header se ajuste al contenido */
+
+  }
+  
+nav ul {
+    list-style: none;                     /* Quita viñetas de lista */
+    display: flex;                        /* Alineación en fila */
+    flex-wrap: wrap;                      /* Permite salto de línea */
+    justify-content: center;             /* Centra los enlaces */
+    gap: 1.5rem; 
+    padding-top: 0.54rem;                          /* Espacio entre enlaces */
+  }
+  
+nav a {
+    color: white;                          /* Texto blanco */
+    text-decoration: none;                /* Sin subrayado */
+    font-weight: bold;                    /* Texto en negrita */
+    transition: color 0.3s;
+               /* Transición suave */
+  }
+  
+nav a:hover {
+    color: #facc15;                       /* Amarillo al pasar el mouse */
+  }
+
+  /* Contenido principal */
+main {
+    display: grid;                        /* Layout en grid */
+    grid-template-columns: 1fr 3fr;       /* Aside 1 parte, section 3 partes */
+    gap: 2rem;                             /* Espacio entre columnas */
+    padding: 2rem;                         /* Espaciado interno */
+  }
+  
+
+  
+  /* Contenedores dentro de section */
+  .cuadro1 {
+    padding-top: 50rem; /* Espacio superior */
+    background-color: white;              /* Fondo blanco */
+    padding: 3rem;                         /* Espaciado interno */
+    margin-bottom: 2rem;                  /* Separación inferior */
+    border-radius: 10px;                  /* Bordes redondeados */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);/* Sombra ligera */
+    text-align: justify;
+  }
+
+
+  section > div {
+    margin-top: 5px;
+    background-color: white;              /* Fondo blanco */
+    padding: 2rem;                         /* Espaciado interno */
+    margin-bottom: 1rem;                  /* Separación inferior */
+    border-radius: 10px;                  /* Bordes redondeados */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);/* Sombra ligera */
+    text-align: justify;
+  }
+
+  .cuadro1 > h2 {
+    margin-left: 10px;
+    font-size: 1.8rem;                    /* Tamaño grande para los títulos */
+    margin-bottom: 1rem;                  /* Espacio debajo del título */
+  }
+  
+  .cuadro1 > p {
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 1rem;                  /* Espacio debajo del título */
+  }
+
+  
+  /* Títulos */
+  h2 {
+    color: #1e293b;                       /* Azul oscuro-grisáceo */
+    margin-bottom: 1rem;                  /* Espacio debajo del título */
+  }
+  
+  /* Pie de página */
+  footer {
+    background-color: #0f172a;            /* Mismo fondo que header */
+    color: white;                          /* Texto blanco */
+    text-align: center;                    /* Centrado */
+    padding: 1rem;                         /* Espaciado interno */
+    margin-top: 2rem;                      /* Separación del contenido */
+  }
+  
+  /* Responsive para móviles */
+  @media (max-width: 768px) {
+    main {
+      grid-template-columns: 1fr;         /* Cambia a una sola columna */
+    }
+  
+    nav ul {
+      flex-direction: column;             /* Enlaces en columna */
+      align-items: center;                /* Centrado */
+    }
+  }
+
+.image-container {
+    display: flex;
+    justify-content: center;  /* Centra la imagen */
+    align-items: center;
+    width: 100%;  /* Se adapta al ancho del contenedor */
+    max-width: 600px; /* Máximo tamaño para evitar que crezca demasiado */
+    margin: auto;
+}
+
+.image-container img {
+  width: 100%;  /* Ajusta la imagen al tamaño del contenedor */
+  height: auto; /* Mantiene la proporción correcta */
+  max-width: 100%; /* Garantiza que no se desborde */
+  object-fit: contain; /* Ajusta el contenido dentro del espacio disponible */
+}
+
+.energia-card {
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+
+.energia-solar {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff 100%);
+  border-left: 5px solid #ffd700;
+}
+.energia-eolica {
+  background: linear-gradient(135deg, #e3f2fd 0%, #fff 100%);
+  border-left: 5px solid #2196f3;
+}
+.energia-biomasa {
+  background: linear-gradient(135deg, #e8f5e9 0%, #fff 100%);
+  border-left: 5px solid #4caf50;
+}
+.energia-hidraulica {
+  background: linear-gradient(135deg, #e0f7fa 0%, #fff 100%);
+  border-left: 5px solid #00bcd4;
+}
+
+.calculo-card {
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+
+.texto-justificado {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+html, body {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1 0 auto;
+}
+footer {
+  flex-shrink: 0;
+  width: 100%;
+  background-color: #212529;
+  color: white;
+  padding: 1rem 0;
+  margin-top: auto;
+}

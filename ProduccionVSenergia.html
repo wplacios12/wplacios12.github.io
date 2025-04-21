@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Energías Renovables Colombia</title>
+    <link rel="stylesheet" href="/styles_bootstrap.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+    <!-- Encabezado -->
+    <header class="text-center bg-light py-4">
+        <h1 class="display-5 fw-bold">Transición Energética</h1>
+        <p class="lead display-7">La Clave Para El Cambio Climático</p>
+    </header>
+
+    <!-- Navegación -->
+    <nav>
+        <ul>
+            <li><a href="/index_bootstrap.html">Inicio</a></li>
+            <li><a href="/Datos_Historicos.html">Datos Historicos</a></li>
+            <li><a href="/Formulario-Calculo.html">Calculo de energia renovable</a></li>
+            <li><a href="/Test_Energias.html">Test Energias Renovables</a></li>
+            <li><a href="/ProduccionVSenergia.html">Producción vs Consumo</a></li>
+        </ul>
+    </nav>
+
+    <div class="container py-5">
+        <!-- Panel de Control Principal -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow" data-aos="fade-up">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Dashboard de Energías Renovables en Colombia</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Filtros -->
+                            <div class="col-md-3 mb-3">
+                                <label for="yearSelector" class="form-label">Año:</label>
+                                <select class="form-select" id="yearSelector"></select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="energyType" class="form-label">Tipo de Energía:</label>
+                                <select class="form-select" id="energyType">
+                                    <option value="all">Todas</option>
+                                    <option value="solar">Solar</option>
+                                    <option value="wind">Eólica</option>
+                                    <option value="hydro">Hidráulica</option>
+                                    <option value="biomass">Geo Biomasa y Otros</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row">
+            <!-- Gráfico de Producción -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow" data-aos="fade-up">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Producción de Energía Renovable</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="productionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico de Consumo -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow" data-aos="fade-up">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Consumo de Energía Renovable</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="consumptionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparativa y Estadísticas -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow" data-aos="fade-up">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0">Comparativa Producción vs Consumo</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="compareChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página -->
+    <footer class="bg-dark text-white text-center py-3">
+        <p class="mb-0">© 2025 - Página informativa sobre Energías Renovables.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        let charts = {
+            production: null,
+            consumption: null,
+            compare: null
+        };
+
+        async function loadData() {
+            try {
+                console.log('Iniciando carga de datos...');
+                const [consumptionData, productionData, hydroData, hydroShareData] = await Promise.all([
+                    fetch('cvs/02 modern-renewable-energy-consumption.csv').then(response => response.text()),
+                    fetch('cvs/03 modern-renewable-prod.csv').then(response => response.text()),
+                    fetch('cvs/05 hydropower-consumption.csv').then(response => response.text()),
+                    fetch('cvs/06 hydro-share-energy.csv').then(response => response.text())
+                ]);
+                
+                console.log('Datos cargados:', {
+                    consumption: consumptionData.slice(0, 100),
+                    production: productionData.slice(0, 100)
+                });
+
+                const colombiaData = processData(consumptionData, productionData, hydroData, hydroShareData);
+                console.log('Datos procesados:', colombiaData);
+                
+                if (Object.keys(colombiaData).length === 0) {
+                    throw new Error('No se encontraron datos para Colombia');
+                }
+
+                createCharts(colombiaData);
+                populateYearSelector(colombiaData);
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                // Mostrar error en la interfaz
+                document.querySelectorAll('.card-body').forEach(card => {
+                    card.innerHTML = `<div class="alert alert-danger">Error cargando datos: ${error.message}</div>`;
+                });
+            }
+        }
+
+        function processData(consumption, production, hydro, hydroShare) {
+            console.log('Procesando datos...');
+            const data = {};
+            
+            // Procesar datos de consumo
+            consumption.split('\n').slice(1).forEach(line => {
+                if (line.startsWith('Colombia,COL,')) {
+                    const values = line.split(',');
+                    const year = values[2];
+                    if (!data[year]) {
+                        data[year] = {
+                            consumption: {
+                                biomass: 0,
+                                solar: 0,
+                                wind: 0,
+                                hydro: 0
+                            },
+                            production: {
+                                biomass: 0,
+                                solar: 0,
+                                wind: 0,
+                                hydro: 0
+                            }
+                        };
+                    }
+                    data[year].consumption = {
+                        biomass: parseFloat(values[3]) || 0,
+                        solar: parseFloat(values[4]) || 0,
+                        wind: parseFloat(values[5]) || 0,
+                        hydro: parseFloat(values[6]) || 0
+                    };
+                }
+            });
+
+            // Procesar datos de producción
+            production.split('\n').slice(1).forEach(line => {
+                if (line.startsWith('Colombia,COL,')) {
+                    const values = line.split(',');
+                    const year = values[2];
+                    if (!data[year]) {
+                        data[year] = {
+                            consumption: {
+                                biomass: 0,
+                                solar: 0,
+                                wind: 0,
+                                hydro: 0
+                            },
+                            production: {
+                                biomass: 0,
+                                solar: 0,
+                                wind: 0,
+                                hydro: 0
+                            }
+                        };
+                    }
+                    data[year].production = {
+                        wind: parseFloat(values[3]) || 0,
+                        hydro: parseFloat(values[4]) || 0,
+                        solar: parseFloat(values[5]) || 0,
+                        biomass: parseFloat(values[6]) || 0
+                    };
+                }
+            });
+
+            console.log('Datos procesados:', data);
+            return data;
+        }
+
+        function createCharts(data) {
+            console.log('Creando gráficos con datos:', data);
+            const years = Object.keys(data).sort();
+            const colors = {
+                solar: '#ffc107',
+                wind: '#0d6efd',
+                hydro: '#0dcaf0',
+                biomass: '#198754'
+            };
+
+            // Destruir gráficos existentes si los hay
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+
+            // Gráfico de Producción
+            const ctxProduction = document.getElementById('productionChart').getContext('2d');
+            charts.production = new Chart(ctxProduction, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'Solar',
+                            data: years.map(year => data[year].production.solar),
+                            borderColor: colors.solar,
+                            fill: false
+                        },
+                        {
+                            label: 'Eólica',
+                            data: years.map(year => data[year].production.wind),
+                            borderColor: colors.wind,
+                            fill: false
+                        },
+                        {
+                            label: 'Hidráulica',
+                            data: years.map(year => data[year].production.hydro),
+                            borderColor: colors.hydro,
+                            fill: false
+                        },
+                        {
+                            label: 'Geo Biomasa',
+                            data: years.map(year => data[year].production.biomass),
+                            borderColor: colors.biomass,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'TWh'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Consumo
+            const ctxConsumption = document.getElementById('consumptionChart').getContext('2d');
+            charts.consumption = new Chart(ctxConsumption, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'Solar',
+                            data: years.map(year => data[year].consumption.solar),
+                            borderColor: colors.solar,
+                            fill: false
+                        },
+                        {
+                            label: 'Eólica',
+                            data: years.map(year => data[year].consumption.wind),
+                            borderColor: colors.wind,
+                            fill: false
+                        },
+                        {
+                            label: 'Hidráulica',
+                            data: years.map(year => data[year].consumption.hydro),
+                            borderColor: colors.hydro,
+                            fill: false
+                        },
+                        {
+                            label: 'Geo Biomasa',
+                            data: years.map(year => data[year].consumption.biomass),
+                            borderColor: colors.biomass,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'TWh'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico Comparativo
+            const ctxCompare = document.getElementById('compareChart').getContext('2d');
+            charts.compare = new Chart(ctxCompare, {
+                type: 'bar',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'Producción Total',
+                            data: years.map(year => {
+                                const prod = data[year].production;
+                                return prod.solar + prod.wind + prod.hydro + prod.biomass;
+                            }),
+                            backgroundColor: '#198754'
+                        },
+                        {
+                            label: 'Consumo Total',
+                            data: years.map(year => {
+                                const cons = data[year].consumption;
+                                return cons.solar + cons.wind + cons.hydro + cons.biomass;
+                            }),
+                            backgroundColor: '#0dcaf0'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'TWh'
+                            }
+                        }
+                    }
+                }
+            });
+        } // End of createCharts function
+
+        function populateYearSelector(data) {
+            console.log('Poblando selector de años...');
+            const yearSelector = document.getElementById('yearSelector');
+            const years = Object.keys(data).sort();
+            
+            // Poblar el selector de años
+            yearSelector.innerHTML = '<option value="">Todos los años</option>' + 
+                years.map(year => `<option value="${year}">${year}</option>`).join('');
+            
+            // Manejar cambios en el selector
+            yearSelector.addEventListener('change', function(e) {
+                const selectedYear = e.target.value;
+                updateChartsForYear(data, selectedYear);
+            });
+        }
+
+        function updateChartsForYear(data, selectedYear) {
+            console.log('Actualizando gráficos para año:', selectedYear);
+            const years = Object.keys(data).sort();
+            
+            if (selectedYear) {
+                // Mostrar desde el inicio hasta el año seleccionado
+                const endIndex = years.indexOf(selectedYear);
+                const filteredYears = years.slice(0, endIndex + 1);
+                
+                Object.values(charts).forEach(chart => {
+                    chart.data.labels = filteredYears;
+                    chart.data.datasets.forEach(dataset => {
+                        dataset.data = filteredYears.map(year => {
+                            if (chart === charts.compare) {
+                                // Para el gráfico comparativo
+                                if (dataset.label.includes('Producción')) {
+                                    const prod = data[year].production;
+                                    return prod.solar + prod.wind + prod.hydro + prod.biomass;
+                                } else {
+                                    const cons = data[year].consumption;
+                                    return cons.solar + cons.wind + cons.hydro + cons.biomass;
+                                }
+                            } else {
+                                // Para los gráficos de producción y consumo
+                                const type = dataset.label.toLowerCase();
+                                const dataType = chart === charts.production ? 'production' : 'consumption';
+                                if (type.includes('solar')) return data[year][dataType].solar;
+                                if (type.includes('eólica')) return data[year][dataType].wind;
+                                if (type.includes('hidráulica')) return data[year][dataType].hydro;
+                                if (type.includes('geo biomasa')) return data[year][dataType].biomass;
+                            }
+                        });
+                    });
+                    chart.update();
+                });
+            } else {
+                // Mostrar todos los años
+                createCharts(data);
+            }
+        }
+
+        document.getElementById('energyType').addEventListener('change', function(e) {
+            const selectedType = e.target.value.toLowerCase();
+            
+            Object.values(charts).forEach(chart => {
+                if (chart === charts.compare) {
+                    // No aplicar filtro al gráfico comparativo
+                    return;
+                }
+                
+                chart.data.datasets.forEach(dataset => {
+                    const datasetLabel = dataset.label.toLowerCase();
+                    if (selectedType === 'all') {
+                        dataset.hidden = false;
+                    } else {
+                        dataset.hidden = !(
+                            (selectedType === 'solar' && datasetLabel.includes('solar')) ||
+                            (selectedType === 'wind' && datasetLabel.includes('eólica')) ||
+                            (selectedType === 'hydro' && datasetLabel.includes('hidráulica')) ||
+                            (selectedType === 'biomass' && datasetLabel.includes('geo biomasa'))
+                        );
+                    }
+                });
+                chart.update();
+            });
+        });
+
+        // Inicializar AOS y cargar datos
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Cargado, iniciando aplicación...');
+            AOS.init({
+                once: true,
+                offset: 200
+            });
+            loadData();
+        });
+    </script>
+</body>
+</html>
