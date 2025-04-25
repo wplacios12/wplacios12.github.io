@@ -19,7 +19,7 @@
     <!-- Navegación -->
     <nav>
         <ul>
-            <li><a href="/index.html">Inicio</a></li>
+            <li><a href="/index_bootstrap.html">Inicio</a></li>
             <li><a href="/Datos_Historicos.html">Datos Historicos</a></li>
             <li><a href="/Formulario-Calculo.html">Calculo de energia renovable</a></li>
             <li><a href="/Test_Energias.html">Test Energias Renovables</a></li>
@@ -49,14 +49,39 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row" id="graficosContainer" style="display: none;">
             <div class="col-md-6">
                 <div class="card shadow">
                     <div class="card-header bg-success text-white">
                         <h4 class="mb-0">Distribución de Energías Renovables</h4>
                     </div>
                     <div class="card-body">
-                        <canvas id="graficoDistribucion"></canvas>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <canvas id="graficoDistribucion"></canvas>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mt-3" id="leyendaDistribucion">
+                                    <h6 class="mb-3">Desglose por tipo:</h6>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-info me-2" style="width: 15px; height: 15px;"></span>
+                                        <small>Hidráulica: <span id="hidroValue">-</span></small>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-primary me-2" style="width: 15px; height: 15px;"></span>
+                                        <small>Eólica: <span id="eolicaValue">-</span></small>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-warning me-2" style="width: 15px; height: 15px;"></span>
+                                        <small>Solar: <span id="solarValue">-</span></small>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-success me-2" style="width: 15px; height: 15px;"></span>
+                                        <small>Geo Biomasa: <span id="bioValue">-</span></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,6 +94,18 @@
                         <canvas id="graficoComparacion"></canvas>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón Volver al Inicio -->
+    <div class="container-fluid mb-4">
+        <div class="row">
+            <div class="col-12 text-center">
+                <a href="/index_bootstrap.html" class="btn btn-lg" style="background-color: #2a9fa0; color: white;">
+                    <i class="bi bi-house-door-fill me-2"></i>
+                    Volver al Inicio
+                </a>
             </div>
         </div>
     </div>
@@ -138,31 +175,6 @@
             const totalRenovable = datos.geoBiomasa + datos.solar + datos.eolica + datos.hidro;
             const totalRenovableKWh = totalRenovable * 1000000000;
 
-            // Crear gráfico de distribución inicial
-            const ctxDistribucion = document.getElementById('graficoDistribucion').getContext('2d');
-            if (graficoDistribucion) {
-                graficoDistribucion.destroy();
-            }
-            graficoDistribucion = new Chart(ctxDistribucion, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Hidráulica', 'Eólica', 'Solar', 'Geo Biomasa y Otros'],
-                    datasets: [{
-                        data: [datos.hidro, datos.eolica, datos.solar, datos.geoBiomasa],
-                        backgroundColor: ['#0dcaf0', '#0d6efd', '#ffc107', '#198754']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Distribución Actual de Energías Renovables'
-                        }
-                    }
-                }
-            });
-
             // Manejar el envío del formulario
             document.getElementById('formulario').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -172,6 +184,57 @@
                 const porcentajeRenovable = Math.min((capacidadTotal / (capacidadTotal * 1.2)) * 100, 100);
                 const consumoRenovable = (consumo * porcentajeRenovable) / 100;
                 const consumoNoRenovable = consumo - consumoRenovable;
+
+                // Mostrar contenedor de gráficos
+                document.getElementById('graficosContainer').style.display = 'flex';
+
+                // Calcular los valores para el gráfico de distribución
+                const hidraulicaValue = ((datos.hidro/totalRenovable)*consumoRenovable).toFixed(2);
+                const eolicaValue = ((datos.eolica/totalRenovable)*consumoRenovable).toFixed(2);
+                const solarValue = ((datos.solar/totalRenovable)*consumoRenovable).toFixed(2);
+                const biomasaValue = ((datos.geoBiomasa/totalRenovable)*consumoRenovable).toFixed(2);
+
+                // Actualizar los valores en la leyenda
+                document.getElementById('hidroValue').textContent = `${hidraulicaValue} kWh`;
+                document.getElementById('eolicaValue').textContent = `${eolicaValue} kWh`;
+                document.getElementById('solarValue').textContent = `${solarValue} kWh`;
+                document.getElementById('bioValue').textContent = `${biomasaValue} kWh`;
+
+                // Actualizar el gráfico de distribución
+                if (graficoDistribucion) {
+                    graficoDistribucion.destroy();
+                }
+
+                const ctxDistribucion = document.getElementById('graficoDistribucion').getContext('2d');
+                graficoDistribucion = new Chart(ctxDistribucion, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Hidráulica', 'Eólica', 'Solar', 'Geo Biomasa y Otros'],
+                        datasets: [{
+                            data: [hidraulicaValue, eolicaValue, solarValue, biomasaValue],
+                            backgroundColor: ['#0dcaf0', '#0d6efd', '#ffc107', '#198754']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Distribución de tu Consumo Renovable (kWh)'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.parsed;
+                                        const total = context.dataset.data.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+                                        const percentage = ((value * 100) / total).toFixed(1);
+                                        return `${context.label}: ${value} kWh (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
 
                 // Destruir el gráfico de comparación anterior si existe
                 if (graficoComparacion) {
@@ -226,10 +289,10 @@
                     <p><strong>Energía renovable disponible:</strong> ${consumoRenovable.toFixed(2)} kWh (${porcentajeRenovable.toFixed(2)}%)</p>
                     <p><strong>Distribución por fuente:</strong></p>
                     <ul>
-                        <li>Hidráulica: ${((datos.hidro/totalRenovable)*100).toFixed(2)}% (${((datos.hidro/totalRenovable)*consumoRenovable).toFixed(2)} kWh)</li>
-                        <li>Eólica: ${((datos.eolica/totalRenovable)*100).toFixed(2)}% (${((datos.eolica/totalRenovable)*consumoRenovable).toFixed(2)} kWh)</li>
-                        <li>Solar: ${((datos.solar/totalRenovable)*100).toFixed(2)}% (${((datos.solar/totalRenovable)*consumoRenovable).toFixed(2)} kWh)</li>
-                        <li>Geo Biomasa y Otros: ${((datos.geoBiomasa/totalRenovable)*100).toFixed(2)}% (${((datos.geoBiomasa/totalRenovable)*consumoRenovable).toFixed(2)} kWh)</li>
+                        <li>Hidráulica: ${((datos.hidro/totalRenovable)*100).toFixed(2)}% (${hidraulicaValue} kWh)</li>
+                        <li>Eólica: ${((datos.eolica/totalRenovable)*100).toFixed(2)}% (${eolicaValue} kWh)</li>
+                        <li>Solar: ${((datos.solar/totalRenovable)*100).toFixed(2)}% (${solarValue} kWh)</li>
+                        <li>Geo Biomasa y Otros: ${((datos.geoBiomasa/totalRenovable)*100).toFixed(2)}% (${biomasaValue} kWh)</li>
                     </ul>
                     <p class="mt-3"><strong>Impacto Ambiental Estimado:</strong></p>
                     <p>Al utilizar ${consumoRenovable.toFixed(2)} kWh de energía renovable, estás evitando aproximadamente ${(consumoRenovable * 0.0005).toFixed(2)} toneladas de emisiones de CO2.</p>
