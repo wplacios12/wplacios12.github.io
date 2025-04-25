@@ -232,3 +232,56 @@ footer {
   padding: 1rem 0;
   margin-top: auto;
 }
+
+#backToTop {
+  bottom: 30px;
+  right: 30px;
+  width: 56px;
+  height: 56px;
+  z-index: 99;
+  border: none;
+  outline: none;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: #2a9fa0;  /* Cambiado al color de nav */
+}
+
+#backToTop i {
+  font-size: 24px;
+  color: #fff;
+  transition: transform 0.3s ease;
+}
+
+#backToTop.visible {
+  opacity: 1;
+  transform: scale(1);
+  cursor: pointer;
+}
+
+#backToTop:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  transform: scale(1.05) translateY(-2px);
+  background: #248f90;  /* Versión más oscura para hover */
+}
+
+#backToTop:hover i {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+#backToTop {
+  width: 48px;
+  height: 48px;
+  bottom: 20px;
+  right: 20px;
+}
+
+#backToTop i {
+  font-size: 20px;
+}
+}
